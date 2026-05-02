@@ -25,6 +25,8 @@ Makefile
 *.pro.user.*
 *.qbs.user
 *.qbs.user.*
+.qtcreator/
+*.user
 .qtc_clangd/
 .vs/
 .vscode/
