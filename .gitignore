@@ -1,0 +1,46 @@
+# Build outputs
+build/
+*/build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Binaries and libraries
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.o
+*.obj
+*.pdb
+
+# Qt Creator / IDE files
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+.qtc_clangd/
+.vs/
+.vscode/
+
+# Generated Qt files
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.autosave
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Keep source assets under Dino/bin/Resources, but ignore runtime binaries in bin.
+!Dino/bin/
+!Dino/bin/Resources/
+!Dino/bin/Resources/**
