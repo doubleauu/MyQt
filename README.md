@@ -1,9 +1,9 @@
-# Qt Dino Workspace
+# Qt Dino 工作区
 
-This repository tracks the full Dino learning and porting workflow:
+这个仓库用于管理 Dino 小游戏的学习、迁移和复现过程。
 
-- `Dino/`: original downloaded C/SDL project used as the source reference.
-- `QtDino/`: C++/Qt conversion target.
-- `MyDino/`: independent C++/Qt reimplementation.
+- `Dino/`：下载的原始 C/SDL 开源项目，作为源码参考。
+- `QtDino/`：计划将原始项目转换为 C++/Qt 项目的目录。
+- `MyDino/`：计划自己复现的 C++/Qt 版本目录。
 
-The repository keeps source files and reusable game assets under version control, while ignoring build outputs, executable files, dynamic libraries, and IDE-generated files.
+仓库会保留源码和可复用的游戏素材，并忽略构建产物、可执行文件、动态库以及 IDE 自动生成的文件。
