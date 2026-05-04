@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QTimer>
 #include <QPixmap>  // Qt 中用来保存图片的类
+#include <QString>
 
 class GameWidget : public QWidget {  // 继承自 QWitget 类
 public:
@@ -38,5 +39,12 @@ private:
 
     // 添加结束状态：
     bool gameOver_ = false;
+
+    // 添加当前分数和最高分显示
+    int score_ = 0;
+    int highScore_ = 0;
+
+    // 保存字体名称，使用默认字体兜底
+    QString fontFamily_ = QStringLiteral("Consolas");
 
 };

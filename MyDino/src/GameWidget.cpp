@@ -3,6 +3,10 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QCoreApplication>  // 应用程序本体的基础功能类
+#include <algorithm>
+// 字体相关类库：
+#include <QFontDatabase>
+#include <QStringList>
 
 // 匿名命名空间，这些变量只在内部使用，不属于成员变量，不需要暴露，表示规则常量
 // constexpr 表示翻译期常量，强于 const
@@ -34,6 +38,16 @@ GameWidget::GameWidget(QWidget *parent)
 
     // 仙人掌照片：
     cactusPixmap_.load(imagePath + "Cactus_SMALL1.png");
+
+    // 加载字体：
+    const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
+    const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
+    if(fontId >= 0) {  // 如果加载成功（返回一个编号）：失败是返回-1；
+        const QStringList families = QFontDatabase::applicationFontFamilies(fontId); // 根据编号获取字体名称列表
+        if(!families.isEmpty()) {   // 如果列表不为空，就取列表中第一个字体名称存入 fontFamily_
+            fontFamily_ = families.first();
+        }
+    }
 }
 
 // 界面刷新函数实现
@@ -80,6 +94,13 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
 
     if(dinoCollisionBox.intersects(obstacleRect_)) {
         gameOver_ = true;
+    }
+
+
+    // 更新分数，每一帧加一分，之后显示的时候再缩小，不然不好实现
+    if(!gameOver_) {  // 这里进行二次判断，是防止这一帧刚碰撞还继续加分
+        score_ += 1;
+        highScore_ = std::max(highScore_, score_);
     }
 
     // 更新小恐龙跑步动画：
@@ -139,10 +160,25 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawRect(dinoRect_);  // 绘制矩形
     }
 
+    // 分数绘制：
+    painter.setPen(Qt::white);
+    painter.setFont(QFont(fontFamily_,20));
+    painter.drawText(
+        QRect(1260,20,100,32),
+        Qt::AlignRight | Qt::AlignVCenter,  // 靠右，且上下居中
+        // 构造字符串对象：生成分数字符串 %1 是占位符，等待 arg 中的结果， 5 表示长度，10 表示进制，0 表示不足前面补 0
+        QString("%1").arg(score_ / 15, 5, 10, QLatin1Char('0'))  //减小显示的分数，防止增长过快
+    );
+    painter.drawText(
+        QRect(1400, 20, 130, 32),
+        Qt::AlignRight | Qt::AlignVCenter,
+        QString("HI %1").arg(highScore_ / 15, 5, 10, QLatin1Char('0'))
+    );
+
     // 失败提示：
     if(gameOver_) {
         painter.setPen(Qt::white);
-        painter.setFont(QFont("Consolas",32));
+        painter.setFont(QFont(fontFamily_,32));
         painter.drawText(rect(),Qt::AlignCenter,"Game Over\nPress R to Restart");
     }
 
@@ -163,7 +199,9 @@ void GameWidget::resetGame() {
     motionRateCount_ = 0;
     currentRunFrame_ = 0;
 
+    // 重置游戏状态：
     gameOver_ = false;
+    score_ = 0;
 }
 
 // 键盘接受函数：
