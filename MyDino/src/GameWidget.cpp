@@ -27,8 +27,10 @@ GameWidget::GameWidget(QWidget *parent)
 
     // 加载小恐龙图片
     // Path 函数返回 .exe 文件所在路径，cmake构建会自动将资源文件复制到 exe 旁边
-    const QString imagePath = QCoreApplication::applicationDirPath() + "/Resources/Textures/Run1.png";
-    dinoPixmap_.load(imagePath);
+    const QString imagePath = QCoreApplication::applicationDirPath() + "/Resources/Textures/";
+    run1Pixmap_.load(imagePath + "Run1.png");
+    run2Pixmap_.load(imagePath + "Run2.png");
+    idlePixmap_.load(imagePath + "Idle.png");
 }
 
 // 界面刷新函数实现
@@ -54,6 +56,15 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         groundOffset_ = 0;
     }
 
+    // 更新小恐龙跑步动画：
+    if(!inAir_) {
+        ++motionRateCount_;
+        if(motionRateCount_ >= 5) {  // 每五帧更新一次图片
+            motionRateCount_ = 0;
+            currentRunFrame_ = 1 - currentRunFrame_;
+        }
+    }
+
     update(); // qt的函数，用来 “请求” 每一帧界面的刷新，之后会触发 paintEvent()
 }
 
@@ -76,13 +87,23 @@ void GameWidget::paintEvent(QPaintEvent *) {
     }
 
     // 小恐龙
-    if(!dinoPixmap_.isNull()) {  // 如果图片加载成功了就绘制图片
-        painter.drawPixmap(dinoRect_, dinoPixmap_);
+    const QPixmap *currentPixmap = nullptr;  // 指针指向的对象内容不能修改，但是可以更改指向内容
+    if(inAir_) {
+        currentPixmap = &idlePixmap_;
+    }else if(currentRunFrame_ == 0) {
+        currentPixmap = &run1Pixmap_;
+    }else {
+        currentPixmap = &run2Pixmap_;
+    }
+
+    if(currentPixmap && !currentPixmap->isNull()) {  // 如果图片加载成功了就绘制图片
+        painter.drawPixmap(dinoRect_, *currentPixmap);
     }else {  // 未加载成功还绘制简易版矩形代替小恐龙
         painter.setBrush(QColor(80,200,120));  // 设置填充颜色
         painter.setPen(Qt::NoPen);  // 设置无边框
         painter.drawRect(dinoRect_);  // 绘制矩形
     }
+
 }
 
 // 键盘接受函数：

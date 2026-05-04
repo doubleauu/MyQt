@@ -22,6 +22,12 @@ private:
     int groundOffset_ = 0;  // 背景偏移量
     int scrollSpeed_ = 6;  // 背景偏移速度
 
-    QPixmap dinoPixmap_;  // 存放小恐龙图片
+    // 存放小恐龙图片
+    QPixmap run1Pixmap_;
+    QPixmap run2Pixmap_;
+    QPixmap idlePixmap_;  // 跳跃状态
+
+    int motionRateCount_ = 0;  // 计数器，控制切图时机
+    int currentRunFrame_ = 0;  // 显示当前为第几张图片
 
 };
