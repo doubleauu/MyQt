@@ -17,4 +17,8 @@ private:
     QRect dinoRect_ {100,600,80,100};  // 恐龙的位置和大小
     int velocityY_ = 0;  // 竖直方向速度
     bool inAir_ = false; // 是否在空中，防止无限连跳
+
+    int groundOffset_ = 0;  // 背景偏移量
+    int scrollSpeed_ = 6;  // 背景偏移速度
+
 };

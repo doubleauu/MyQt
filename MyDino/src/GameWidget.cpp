@@ -22,6 +22,7 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     const int groundY = 600;  // 恐龙在地面时左上角 y 坐标
     const int gravity = 2;  // 重力加速度
 
+    // 小恐龙跳跃：
     if(inAir_) {  // 如果在空中，就更新跳跃运动
         dinoRect_.translate(0,velocityY_);  // 在原位置基础上移动恐龙矩形，x 方向不动，y 方向移动 velocityY_（速度）
         velocityY_ += gravity;  // 速度随重力加速度变化，向上时逐渐变小，向下时逐步变大
@@ -32,6 +33,13 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
             inAir_ = false;
         }
     }
+
+    // 背景移动：
+    groundOffset_ -= scrollSpeed_;
+    if(groundOffset_ <= -40) {
+        groundOffset_ = 0;
+    }
+
     update(); // qt的函数，用来 “请求” 每一帧界面的刷新，之后会触发 paintEvent()
 }
 
@@ -46,6 +54,12 @@ void GameWidget::paintEvent(QPaintEvent *) {
     // 地面：
     painter.setPen(QPen(Qt::white,3));  // 设置画笔颜色和宽度
     painter.drawLine(0,700,width(),700);  // 设置直线两端坐标
+
+    // 地面小线段
+    painter.setPen(QPen(QColor(180,180,180),2));
+    for(int x = groundOffset_; x < width(); x+=40) {  //每隔 40 像素重复生成，与背景最大偏移量周期一致
+        painter.drawLine(x,700,x+20,720);  // 画一条斜线
+    }
 
     // 简易小恐龙：
     painter.setBrush(QColor(80,200,120));  // 设置填充颜色
