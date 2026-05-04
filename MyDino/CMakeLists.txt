@@ -20,3 +20,10 @@ qt_add_executable(MyDino
 #  把 Qt6 的 Widgets 模块库 链接到可执行目标 MyDino 上（窗口功能）
 #  private 表示权限，private只对当前目标生效
 target_link_libraries(MyDino PRIVATE Qt6::Widgets)
+
+# 链接图片，音频资源文件：每次构建后，把 MyDino/Resources 复制到 exe 旁边。
+add_custom_command(TARGET MyDino POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Resources
+        $<TARGET_FILE_DIR:MyDino>/Resources
+)
