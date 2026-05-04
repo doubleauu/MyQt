@@ -19,8 +19,6 @@
   - 已有 `ResourceManager`，用 Qt 的 `QPixmap`、`QFontDatabase`、`QSoundEffect` 替换 SDL 资源和音效管理。
 - `MyDino/`
   - 自己练习用 Qt 版本骨架。
-  - 目前只有 `main.cpp`、`MainWindow.*` 和空的 `GameWidget.*`。
-  - 当前工作区已有用户改动：`MyDino/src/MainWindow.h` 中给构造函数声明追加了一句中文注释，不要误删。
 - `.gitignore`
   - 忽略构建产物、IDE 文件、可执行文件和 DLL。
   - 明确保留 `Dino/bin/Resources/**`，因为这些资源是项目资料的一部分。
@@ -181,19 +179,16 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe --build QtDino/build
 
 ## MyDino 当前状态
 
-`MyDino/` 是最小 Qt Widgets 工程：
+`MyDino/` 是用户自己手写复现的 Qt Widgets 练习工程。当前状态记录到 2026-05-04 19:33：
 
-- `CMakeLists.txt` 只依赖 `Qt6::Widgets`。
-- `main.cpp` 创建 `QApplication` 和 `MainWindow`。
-- `MainWindow.cpp` 目前只设置 `resize(900, 500)` 和标题 `MyDino`，还没有把 `GameWidget` 放入窗口。
-- `GameWidget.h` 和 `GameWidget.cpp` 当前为空。
+- 已完成 `GameWidget` 游戏画布、60 FPS `QTimer` 游戏循环、`QPainter` 基础绘制、键盘跳跃、基础地面滚动、资源目录复制配置、`Run1.png` 恐龙图片加载和绘制。
+- `CMakeLists.txt` 当前依赖 `Qt6::Widgets`，并通过 `add_custom_command(... copy_directory ...)` 在构建后复制 `MyDino/Resources` 到可执行文件旁边。
+- `MainWindow.cpp` 已承载 `GameWidget`，窗口为 `1600 x 800`，标题为 `MyDino`。
+- `GameWidget` 当前使用 `QRect dinoRect_ {20, 500, 200, 200}` 绘制恐龙；地面线在 `y = 700`，恐龙尺寸和站立位置已基本对齐 `QtDino`。
+- 当前跳跃参数已对齐 `QtDino`：`GroundY = 500`、`JumpVelocity = 1840`、`Gravity = 80`，并通过 `delta = velocityY_ / 60` 计算每帧位移；按键支持 `Space`、`Up`、`W` 起跳。
+- 当前资源接入方式：`GameWidget` 使用 `QCoreApplication::applicationDirPath() + "/Resources/Textures/Run1.png"` 加载恐龙图片。
 
-如果后续要在 `MyDino/` 里继续手写复现，建议从 `QtDino/` 中逐步搬迁思路，而不是一次性复制整份实现：
-
-1. 先让 `MainWindow` 承载一个可绘制的 `GameWidget`。
-2. 用 `QTimer` 建立 60 FPS tick。
-3. 先画背景和玩家，再接输入、跳跃、碰撞、障碍、火球、HUD、音效。
-4. 保留 `QtDino/` 作为可对照的完整答案。
+如果后续要在 `MyDino/` 里继续手写复现，建议从 `QtDino/` 中逐步搬迁思路，而不是一次性复制整份实现；每次讲解前先只读检查用户当前代码进度。
 
 ## 资源记忆
 
@@ -249,3 +244,4 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe --build QtDino/build
 - 默认只提供讲解、步骤、示例代码、排错思路和验收清单，让用户自己在 `MyDino/` 中实现。
 - 当用户询问 `MyDino/` 复刻步骤时，每一步都要同时给出必要代码和简要解释，解释代码的作用、为什么这样写，以及该步骤的验收点。
 - 指导用户复刻 `MyDino/` 时，流程可以为了学习而简化，但涉及画面比例、坐标、速度、重力、碰撞框、资源尺寸、窗口大小等会影响后续功能的关键参数，应优先参考并对齐 `QtDino/` 的现有实现，避免用户后续返工。
+- 每次进行 `MyDino/` 复刻讲解前，先只读检查用户当前 `MyDino/` 代码和实现进度，再给出下一步说明，避免脱离实际代码的模糊回答。
