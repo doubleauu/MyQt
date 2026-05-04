@@ -1,5 +1,6 @@
 #include "GameWidget.h"
 
+#include <QPainter>
 
 // 构造函数实现：
 GameWidget::GameWidget(QWidget *parent)
@@ -18,4 +19,22 @@ GameWidget::GameWidget(QWidget *parent)
 // 界面刷新函数实现
 void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     update(); // qt的函数，用来 “请求” 每一帧界面的刷新，之后会触发 paintEvent()
+}
+
+// 实现界面绘制函数
+// 当需要重画界面是自动调用，变量名可以省略，因为此处不会使用 event
+void GameWidget::paintEvent(QPaintEvent *) {
+    QPainter painter(this);  // 创建画笔，属于当前窗口
+
+    // 背景：
+    painter.fillRect(rect(),QColor(32,33,36));  // 填充整个矩形界面
+
+    // 地面：
+    painter.setPen(QPen(Qt::white,3));  // 设置画笔颜色和宽度
+    painter.drawLine(0,700,width(),700);  // 设置直线两端坐标
+
+    // 简易小恐龙：
+    painter.setBrush(QColor(80,200,120));  // 设置填充颜色
+    painter.setPen(Qt::NoPen);  // 设置无边框
+    painter.drawRect(100,600,80,100);  // 绘制矩形
 }
