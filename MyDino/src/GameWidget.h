@@ -30,4 +30,12 @@ private:
     int motionRateCount_ = 0;  // 计数器，控制切图时机
     int currentRunFrame_ = 0;  // 显示当前为第几张图片
 
+    // 添加仙人掌障碍物：
+    QPixmap cactusPixmap_;
+    QRect obstacleRect_ {1600,580,60,120};
+    int obstacleSpeed_ = 16;
+
+    // 添加结束状态：
+    bool gameOver_ = false;
+
 };

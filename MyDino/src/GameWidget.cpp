@@ -31,10 +31,19 @@ GameWidget::GameWidget(QWidget *parent)
     run1Pixmap_.load(imagePath + "Run1.png");
     run2Pixmap_.load(imagePath + "Run2.png");
     idlePixmap_.load(imagePath + "Idle.png");
+
+    // 仙人掌照片：
+    cactusPixmap_.load(imagePath + "Cactus_SMALL1.png");
 }
 
 // 界面刷新函数实现
 void GameWidget::tick() {  // 作用域限定符写在返回类型后面
+
+    // 失败判断：
+    if (gameOver_) {
+        update();
+        return;
+    }
 
     // 小恐龙跳跃：
     if(inAir_) {  // 如果在空中，就更新跳跃运动
@@ -54,6 +63,23 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     groundOffset_ -= scrollSpeed_;
     if(groundOffset_ <= -40) {
         groundOffset_ = 0;
+    }
+
+    // 仙人掌移动
+    obstacleRect_.translate(-obstacleSpeed_,0);
+    if(obstacleRect_.right() < 0) {  // 重复利用
+        obstacleRect_.moveLeft(width());
+    }
+
+    // 添加小恐龙碰撞框，创建新的矩形，直接复用原版参数
+    QRect dinoCollisionBox(
+        dinoRect_.x() + 40,
+        dinoRect_.y() + 40,
+        100,150
+    );
+
+    if(dinoCollisionBox.intersects(obstacleRect_)) {
+        gameOver_ = true;
     }
 
     // 更新小恐龙跑步动画：
@@ -86,6 +112,15 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawLine(x,700,x+20,720);  // 画一条斜线
     }
 
+    // 仙人掌障碍物：
+    if(!cactusPixmap_.isNull()) {
+        painter.drawPixmap(obstacleRect_,cactusPixmap_);  // 第一个参数是目标矩形（位置），第二个参数是填充图片
+    }else {  // 未加载图片就画简易矩形替代
+        painter.setBrush(QColor(200, 80, 80));
+        painter.setPen(Qt::NoPen);
+        painter.drawRect(obstacleRect_);
+    }
+
     // 小恐龙
     const QPixmap *currentPixmap = nullptr;  // 指针指向的对象内容不能修改，但是可以更改指向内容
     if(inAir_) {
@@ -102,6 +137,13 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.setBrush(QColor(80,200,120));  // 设置填充颜色
         painter.setPen(Qt::NoPen);  // 设置无边框
         painter.drawRect(dinoRect_);  // 绘制矩形
+    }
+
+    // 失败提示：
+    if(gameOver_) {
+        painter.setPen(Qt::white);
+        painter.setFont(QFont("Consolas",32));
+        painter.drawText(rect(),Qt::AlignCenter,"Game Over");
     }
 
 }
