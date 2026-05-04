@@ -1,6 +1,7 @@
 #include "GameWidget.h"
 
 #include <QPainter>
+#include <QKeyEvent>
 
 // 构造函数实现：
 GameWidget::GameWidget(QWidget *parent)
@@ -18,6 +19,19 @@ GameWidget::GameWidget(QWidget *parent)
 
 // 界面刷新函数实现
 void GameWidget::tick() {  // 作用域限定符写在返回类型后面
+    const int groundY = 600;  // 恐龙在地面时左上角 y 坐标
+    const int gravity = 2;  // 重力加速度
+
+    if(inAir_) {  // 如果在空中，就更新跳跃运动
+        dinoRect_.translate(0,velocityY_);  // 在原位置基础上移动恐龙矩形，x 方向不动，y 方向移动 velocityY_（速度）
+        velocityY_ += gravity;  // 速度随重力加速度变化，向上时逐渐变小，向下时逐步变大
+
+        if(dinoRect_.y() >= groundY) {  // 当落到地面上时，更新状态，可以进行下一次跳跃；
+            dinoRect_.moveTop(groundY);  // 将矩形顶部强制放回 groundY;
+            velocityY_ = 0;
+            inAir_ = false;
+        }
+    }
     update(); // qt的函数，用来 “请求” 每一帧界面的刷新，之后会触发 paintEvent()
 }
 
@@ -36,5 +50,17 @@ void GameWidget::paintEvent(QPaintEvent *) {
     // 简易小恐龙：
     painter.setBrush(QColor(80,200,120));  // 设置填充颜色
     painter.setPen(Qt::NoPen);  // 设置无边框
-    painter.drawRect(100,600,80,100);  // 绘制矩形
+    painter.drawRect(dinoRect_);  // 绘制矩形
+}
+
+// 键盘接受函数：
+void GameWidget::keyPressEvent(QKeyEvent *event) {
+    if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
+        if(!inAir_) {
+            velocityY_ = -28;  // 初始速度：-28，后续随重力加速度变化
+            inAir_ = true;
+        }else {
+            QWidget::keyPressEvent(event);
+        }
+    }
 }
