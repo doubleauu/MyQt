@@ -143,13 +143,45 @@ void GameWidget::paintEvent(QPaintEvent *) {
     if(gameOver_) {
         painter.setPen(Qt::white);
         painter.setFont(QFont("Consolas",32));
-        painter.drawText(rect(),Qt::AlignCenter,"Game Over");
+        painter.drawText(rect(),Qt::AlignCenter,"Game Over\nPress R to Restart");
     }
 
 }
 
+// 重新开始函数：
+void GameWidget::resetGame() {
+    // 重置小恐龙状态：
+    dinoRect_.moveTop(GroundY);
+    velocityY_ = 0;
+    inAir_ = false;
+
+    //重置障碍物和背景位置：
+    obstacleRect_.moveLeft(width());
+    groundOffset_ = 0;
+
+    // 重置小恐龙动画：
+    motionRateCount_ = 0;
+    currentRunFrame_ = 0;
+
+    gameOver_ = false;
+}
+
 // 键盘接受函数：
 void GameWidget::keyPressEvent(QKeyEvent *event) {
+
+    // 重开按键：
+    if(event->key()==Qt::Key_R && gameOver_) {
+        resetGame();
+        return;
+    }
+
+    // 游戏结束后不再处理按键
+    if(gameOver_) {
+        QWidget::keyPressEvent(event);
+        return;
+    }
+
+    // 跳跃按键
     if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
         if(!inAir_) {
             velocityY_ = JumpVelocity;  // 初始速度，后续随重力加速度变化
@@ -157,5 +189,10 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         }else {
             QWidget::keyPressEvent(event);
         }
+    }else {
+        QWidget::keyPressEvent(event);  // 其他按键不处理；
     }
+
+
+
 }

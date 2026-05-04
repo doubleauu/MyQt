@@ -207,6 +207,14 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe --build QtDino/build
 - 碰撞后进入 `gameOver_` 状态，停止更新并在画面中央显示 `Game Over`。
 - 本次提交信息：`实现障碍物移动和碰撞检测`。
 
+### 2026-05-04 21:25
+
+- 已完成 `实现游戏失败后重新开始`。
+- `GameWidget` 已新增 `resetGame()`，用于重置恐龙位置、竖直速度、空中状态、障碍物位置、背景偏移、跑步动画帧和 `gameOver_`。
+- 失败提示已改为 `Game Over\nPress R to Restart`。
+- `keyPressEvent()` 已支持在 `gameOver_` 状态下按 `R` 重新开始；失败状态下除 `R` 外不处理其他游戏输入。
+- 本次提交信息：`实现游戏失败后重新开始`。
+
 如果后续要在 `MyDino/` 里继续手写复现，建议从 `QtDino/` 中逐步搬迁思路，而不是一次性复制整份实现；每次讲解前先只读检查用户当前代码进度。
 
 ## 资源记忆

@@ -14,6 +14,7 @@ protected:
 private:
     QTimer timer_; // 计时器，负责每隔一段时间提醒程序刷新
     void tick();  // 游戏每一帧要执行的函数，即每一帧的更新入口
+    void resetGame();  // 重新开始游戏
 
     QRect dinoRect_ {20,500,200,200};  // 恐龙的位置和大小
     int velocityY_ = 0;  // 竖直方向速度
