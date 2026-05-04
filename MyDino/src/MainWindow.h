@@ -6,5 +6,5 @@ class MainWindow : public QMainWindow
 {
 public:
     // explicit 关键字，禁止构造函数发生隐式类型转换
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);  // 指明其不属于任何父类窗口
 };
