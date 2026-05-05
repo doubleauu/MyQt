@@ -91,6 +91,10 @@ private:
     bool paused_ = false;
     bool gameOver_ = false;
 
+    // 无敌状态：
+    bool godMode_ = false;
+    int godModeFrames_ = 0;  // 无敌帧数
+
     // 生命值和受伤保护：
     int health_ = 3;  // 初始值为 3
     int hurtProtectFrames_ = 0;

@@ -18,6 +18,7 @@ constexpr int JumpVelocity = 1840;  // 起跳初始速度
 constexpr int Gravity = 80;  // 重力加速度
 constexpr int FallVelocity = -1840;  // 空中下蹲快速下落
 constexpr int HurtProtectFrames = 60;  // 受伤后保护 60 帧，约 1 秒，防止一个障碍物重复扣血
+constexpr int GodModeFrames = 200;  // 最大无敌帧数
 }
 
 // 构造函数实现：
@@ -115,6 +116,14 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     // 受伤保护时间倒计时：
     if(hurtProtectFrames_ > 0) {
         --hurtProtectFrames_;
+    }
+
+    // 无敌时间倒计时
+    if(godModeFrames_ > 0) {
+        --godModeFrames_;
+        if(godModeFrames_ <= 0) {
+            godMode_ = false;
+        }
     }
 
     // 根据分数更新速度档位
@@ -244,7 +253,7 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         if(obstacleType_ == ObstacleType::Energy) {  // 如果是撞上能量球，就加体力，上限为 3
             stamina_ = std::min(3, stamina_ + 1);
             spawnNextObstacle();
-        }else if(hurtProtectFrames_ <= 0) {  // 否则，如果不在受伤保护期间就扣血
+        }else if(!godMode_ && hurtProtectFrames_ <= 0) {  // 否则，如果不在无敌状态且不在受伤保护期间就扣血
             --health_;
             hurtProtectFrames_ = HurtProtectFrames;
 
@@ -355,7 +364,9 @@ void GameWidget::paintEvent(QPaintEvent *) {
     }
 
     if(currentPixmap && !currentPixmap->isNull()) {  // 如果图片加载成功了就绘制图片
-        if(hurtProtectFrames_ > 0 && (hurtProtectFrames_/6)%2==0) {  // 透明状态每 6 帧切换一次，实现闪烁
+        if(godMode_) {  // 无敌状态
+            painter.setOpacity(0.35);
+        }else if(hurtProtectFrames_ > 0 && (hurtProtectFrames_/6)%2==0) {  // 受伤保护下，透明状态每 6 帧切换一次，实现闪烁
             painter.setOpacity(0.35);  // 设置画笔透明度
         }
         painter.drawPixmap(dinoRect_, *currentPixmap);
@@ -482,6 +493,10 @@ void GameWidget::resetGame() {
     health_ = 3;
     hurtProtectFrames_ = 0;
 
+    // 重置无敌状态：
+    godMode_ = false;
+    godModeFrames_ = 0;
+
     // 重置体力：
     stamina_ = 3;
 
@@ -572,6 +587,17 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         }
         return;
     }
+
+    // 左键开启无敌：
+    if(event->key() == Qt::Key_Left) {
+        if(stamina_ >= 3 && !godMode_) {
+            stamina_ = 0;
+            godMode_ = true;
+            godModeFrames_ = GodModeFrames;
+        }
+        return;  // 低于三格体力不处理
+    }
+
 
     // 只记录是否按下按键，具体情况交给 tick() 刷新函数判断
     // 下蹲冲刺按键：支持 down 和 s 键
