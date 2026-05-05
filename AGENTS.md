@@ -291,6 +291,16 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe --build QtDino/build
 - `resetGame()` 末尾也会调用 `spawnNextObstacle()`，因此按 `R` 重开后的第一个障碍物同样会随机。
 - 本次提交信息：`随机生成首个障碍物`。
 
+### 2026-05-05 20:52
+
+- 已完成并验收 `实现生命值和受伤保护`。
+- `GameWidget` 已新增 `health_ = 3` 和 `hurtProtectFrames_`，将碰撞失败改为先扣生命值。
+- 已加载 `Heart1.png`、`Heart2.png` 和 `Heart3.png`，并在左上角根据当前生命值绘制生命 UI。
+- 碰撞时如果不在受伤保护期，会扣 1 点生命并进入约 1 秒保护；生命值归零后才进入 `gameOver_`。
+- 受伤保护期间恐龙会通过 `QPainter::setOpacity()` 闪烁，提示当前处于保护状态。
+- `resetGame()` 已支持重开时恢复 3 点生命并清空受伤保护。
+- 本次提交信息：`实现生命值和受伤保护`。
+
 如果后续要在 `MyDino/` 里继续手写复现，建议从 `QtDino/` 中逐步搬迁思路，而不是一次性复制整份实现；每次讲解前先只读检查用户当前代码进度。
 
 ## 资源记忆

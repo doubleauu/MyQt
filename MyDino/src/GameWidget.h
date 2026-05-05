@@ -84,6 +84,14 @@ private:
     // 添加结束状态：
     bool gameOver_ = false;
 
+    // 生命值和受伤保护：
+    int health_ = 3;  // 初始值为 3
+    int hurtProtectFrames_ = 0;
+    // 生命值图片：
+    QPixmap heart1Pixmap_;
+    QPixmap heart2Pixmap_;
+    QPixmap heart3Pixmap_;
+
     // 添加当前分数和最高分显示
     int score_ = 0;
     int highScore_ = 0;

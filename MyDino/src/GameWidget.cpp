@@ -17,6 +17,7 @@ constexpr int GroundY = 500;  // 恐龙在地面时左上角 y 坐标
 constexpr int JumpVelocity = 1840;  // 起跳初始速度
 constexpr int Gravity = 80;  // 重力加速度
 constexpr int FallVelocity = -1840;  // 空中下蹲快速下落
+constexpr int HurtProtectFrames = 60;  // 受伤后保护 60 帧，约 1 秒，防止一个障碍物重复扣血
 }
 
 // 构造函数实现：
@@ -59,6 +60,11 @@ GameWidget::GameWidget(QWidget *parent)
     cloudPixmap_.load(imagePath + "LAYER_CLOUD.png");
     groundPixmap_.load(imagePath + "LAYER_GROUND.png");
 
+    // 血量图片：
+    heart1Pixmap_.load(imagePath + "Heart1.png");
+    heart2Pixmap_.load(imagePath + "Heart2.png");
+    heart3Pixmap_.load(imagePath + "Heart3.png");
+
     // 加载字体：
     const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
     const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
@@ -80,6 +86,11 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     if (gameOver_) {
         update();
         return;
+    }
+
+    // 受伤保护时间倒计时：
+    if(hurtProtectFrames_ > 0) {
+        --hurtProtectFrames_;
     }
 
     // 根据分数更新速度档位
@@ -178,8 +189,14 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         );
     }
 
-    if(dinoCollisionBox.intersects(obstacleCollisionBox)) {
-        gameOver_ = true;
+    // 碰撞检测时加上保护检测，血量扣光时游戏结束
+    if(dinoCollisionBox.intersects(obstacleCollisionBox) && hurtProtectFrames_ <= 0) {
+        --health_;
+        hurtProtectFrames_ = HurtProtectFrames;
+
+        if(health_ <= 0) {
+            gameOver_ = true;
+        }
     }
 
 
@@ -271,11 +288,30 @@ void GameWidget::paintEvent(QPaintEvent *) {
     }
 
     if(currentPixmap && !currentPixmap->isNull()) {  // 如果图片加载成功了就绘制图片
+        if(hurtProtectFrames_ > 0 && (hurtProtectFrames_/6)%2==0) {  // 透明状态每 6 帧切换一次，实现闪烁
+            painter.setOpacity(0.35);  // 设置画笔透明度
+        }
         painter.drawPixmap(dinoRect_, *currentPixmap);
+        painter.setOpacity(1.0);
     }else {  // 未加载成功还绘制简易版矩形代替小恐龙
         painter.setBrush(QColor(80,200,120));  // 设置填充颜色
         painter.setPen(Qt::NoPen);  // 设置无边框
         painter.drawRect(dinoRect_);  // 绘制矩形
+    }
+
+    // 生命值绘制：如果游戏结束（生命值为零，就会变成空指针，也就不会绘制生命值）
+    const QPixmap *heartPixmap = nullptr;
+
+    if(health_ >= 3) {
+        heartPixmap = &heart3Pixmap_;
+    }else if(health_ == 2) {
+        heartPixmap = &heart2Pixmap_;
+    }else if(health_ == 1) {
+        heartPixmap = &heart1Pixmap_;
+    }
+
+    if(heartPixmap && !heartPixmap->isNull()) {
+        painter.drawPixmap(QRect(20,20,150,50), *heartPixmap);
     }
 
     // 分数绘制：
@@ -331,6 +367,10 @@ void GameWidget::resetGame() {
     // 重置游戏状态：
     gameOver_ = false;
     score_ = 0;
+
+    // 重置血量：
+    health_ = 3;
+    hurtProtectFrames_ = 0;
 
     // 重置速度：
     speed_ = 2;
