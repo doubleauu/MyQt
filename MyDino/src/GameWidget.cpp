@@ -66,6 +66,18 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         return;
     }
 
+    // 根据分数更新速度档位
+    if(score_ >= 6000) {
+        speed_ = 4;
+    }else if (score_ >= 3000) {
+        speed_ = 3;
+    }else {
+        speed_ = 2;
+    }
+
+    scrollSpeed_ = speed_ * 3;  // 背景滚动速度
+    obstacleSpeed_ = speed_ * 8;   // 障碍物移动速度
+
     // 小恐龙跳跃：
     if(inAir_) {  // 如果在空中，就更新跳跃运动
         const int delta = velocityY_ / 60;  // 这一帧恐龙在 Y 轴上要移动多少像素。= 每秒速度/每秒帧数
@@ -145,8 +157,8 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
 
     // 更新分数，每一帧加一分，之后显示的时候再缩小，不然不好实现
     if(!gameOver_) {  // 这里进行二次判断，是防止这一帧刚碰撞还继续加分
-        score_ += 1;
-        if(sprint_) score_ += 1;  // 冲刺状态加分
+        score_ += speed_ - 1;
+        if(sprint_) score_ += speed_ - 1;  // 冲刺状态加分
         highScore_ = std::max(highScore_, score_);
     }
 
@@ -272,6 +284,11 @@ void GameWidget::resetGame() {
     // 重置游戏状态：
     gameOver_ = false;
     score_ = 0;
+
+    // 重置速度：
+    speed_ = 2;
+    scrollSpeed_ = speed_ * 3;
+    obstacleSpeed_ = speed_ * 8;
 }
 
 // 键盘接受函数：

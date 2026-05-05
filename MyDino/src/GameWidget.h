@@ -26,6 +26,7 @@ private:
     bool spacePressed_ = false;  // 是否持续尝试跳跃
 
     int groundOffset_ = 0;  // 背景偏移量
+    int speed_ = 2;  // 当前游戏速度档位，分数越高，速度越快
     int scrollSpeed_ = 6;  // 背景偏移速度
 
     // 存放小恐龙图片
