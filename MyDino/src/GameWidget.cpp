@@ -74,6 +74,9 @@ GameWidget::GameWidget(QWidget *parent)
     // 火球图片：
     fireballPixmap_.load(imagePath + "Fireball.png");
 
+    // 能量球图片：
+    energyballPixmap_.load(imagePath + "Energyball.png");
+
     // 加载字体：
     const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
     const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
@@ -219,6 +222,14 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
             120,60
         );
     }
+    if(obstacleType_ == ObstacleType::Energy) {
+        obstacleCollisionBox = QRect(
+            obstacleRect_.x() + 10,
+            obstacleRect_.y() + 10,
+            30,
+            30
+        );
+    }
 
 
     // 火球与障碍物碰撞检测：
@@ -229,14 +240,20 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
 
 
     // 碰撞检测时加上保护检测，血量扣光时游戏结束
-    if(dinoCollisionBox.intersects(obstacleCollisionBox) && hurtProtectFrames_ <= 0) {
-        --health_;
-        hurtProtectFrames_ = HurtProtectFrames;
+    if(dinoCollisionBox.intersects(obstacleCollisionBox)) {
+        if(obstacleType_ == ObstacleType::Energy) {  // 如果是撞上能量球，就加体力，上限为 3
+            stamina_ = std::min(3, stamina_ + 1);
+            spawnNextObstacle();
+        }else if(hurtProtectFrames_ <= 0) {  // 否则，如果不在受伤保护期间就扣血
+            --health_;
+            hurtProtectFrames_ = HurtProtectFrames;
 
-        if(health_ <= 0) {
-            gameOver_ = true;
+            if(health_ <= 0) {
+                gameOver_ = true;
+            }
         }
     }
+
 
 
     // 更新分数，每一帧加一分，之后显示的时候再缩小，不然不好实现
@@ -307,6 +324,9 @@ void GameWidget::paintEvent(QPaintEvent *) {
         break;
     case ObstacleType::Bird:  // 飞鸟障碍物吗，需要动画判断
         obstaclePixmap = currentBirdFrame_ == 0 ? &bird1Pixmap_ : &bird2Pixmap_;
+        break;
+    case ObstacleType::Energy:
+        obstaclePixmap = &energyballPixmap_;
         break;
     }
 
@@ -591,7 +611,7 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
 
 // 随机障碍物
 void GameWidget::spawnNextObstacle() {
-    const int typeIndex = QRandomGenerator::global()->bounded(0,7);
+    const int typeIndex = QRandomGenerator::global()->bounded(0,8);
     obstacleType_ = static_cast<ObstacleType>(typeIndex);
 
     birdFrameCount_ = 0;
@@ -621,6 +641,11 @@ void GameWidget::spawnNextObstacle() {
     case ObstacleType::Bird: {  // 飞鸟随机生成高度
         const int birdY = QRandomGenerator::global()->bounded(200, 450);
         obstacleRect_ = QRect(width(), birdY, 200, 150);
+        break;
+    }
+    case ObstacleType::Energy: {  // 能量球随机生成高度
+        const int energyY = QRandomGenerator::global()->bounded(150, 450);
+        obstacleRect_ = QRect(width(), energyY, 50, 50);
         break;
     }
     }

@@ -64,7 +64,7 @@ private:
     QRect obstacleRect_ {1600,580,60,120};
     int obstacleSpeed_ = 16;
 
-    // 添加飞鸟资源和障碍物类型
+    // 添加飞鸟资源和障碍物类型，还有能量球
     enum class ObstacleType {
         CactusSmall1,
         CactusSmall2,
@@ -72,12 +72,17 @@ private:
         CactusBig1,
         CactusBig2,
         CactusMix,
-        Bird
+        Bird,
+        Energy
     };
+    ObstacleType obstacleType_ = ObstacleType::CactusSmall1;  // 当前障碍物类型，默认小仙人掌
 
+    //能量球图片：
+    QPixmap energyballPixmap_;
+
+    // 飞鸟照片和计数器：
     QPixmap bird1Pixmap_;
     QPixmap bird2Pixmap_;
-    ObstacleType obstacleType_ = ObstacleType::CactusSmall1;  // 当前障碍物类型，默认小仙人掌
     int birdFrameCount_ = 0;  // 小鸟动画计数器，判断应该画哪一帧动画
     int currentBirdFrame_ = 0;  // 当前显示图片
 
