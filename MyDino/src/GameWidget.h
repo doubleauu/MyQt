@@ -44,6 +44,18 @@ private:
     QRect obstacleRect_ {1600,580,60,120};
     int obstacleSpeed_ = 16;
 
+    // 添加飞鸟资源和障碍物类型
+    enum class ObstacleType {
+        Cactus,
+        Bird
+    };
+
+    QPixmap bird1Pixmap_;
+    QPixmap bird2Pixmap_;
+    ObstacleType obstacleType_ = ObstacleType::Cactus;  // 当前障碍物类型
+    int birdFrameCount_ = 0;  // 小鸟动画计数器，判断应该画哪一帧动画
+    int currentBirdFrame_ = 0;  // 当前显示图片
+
     // 添加结束状态：
     bool gameOver_ = false;
 

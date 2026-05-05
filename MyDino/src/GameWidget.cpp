@@ -42,6 +42,10 @@ GameWidget::GameWidget(QWidget *parent)
     // 仙人掌照片：
     cactusPixmap_.load(imagePath + "Cactus_SMALL1.png");
 
+    // 小鸟照片：
+    bird1Pixmap_.load(imagePath + "Bird1.png");
+    bird2Pixmap_.load(imagePath + "Bird2.png");
+
     // 加载字体：
     const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
     const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
@@ -102,8 +106,10 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
 
     // 仙人掌移动
     obstacleRect_.translate(-obstacleSpeed_,0);
-    if(obstacleRect_.right() < 0) {  // 重复利用
-        obstacleRect_.moveLeft(width());
+    // 更换小鸟障碍物：
+    if(obstacleRect_.right() < 0) {
+        obstacleType_ = ObstacleType::Bird;
+        obstacleRect_ = QRect(width(),450,200,150);
     }
 
     // 可变碰撞框：创建新的矩形，直接复用原版参数
@@ -122,7 +128,17 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         );
     }
 
-    if(dinoCollisionBox.intersects(obstacleRect_)) {
+    // 小鸟的碰撞检测区域较小，创建新的矩形
+    QRect obstacleCollisionBox = obstacleRect_;  // 默认使用仙人掌碰撞矩形
+    if(obstacleType_ == ObstacleType::Bird) {
+        obstacleCollisionBox = QRect (
+            obstacleRect_.x()+40,
+            obstacleRect_.y()+45,
+            120,60
+        );
+    }
+
+    if(dinoCollisionBox.intersects(obstacleCollisionBox)) {
         gameOver_ = true;
     }
 
@@ -141,6 +157,16 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         if(motionRateCount_ >= frameInterval) {  // 每五帧更新一次图片
             motionRateCount_ = 0;
             currentRunFrame_ = 1 - currentRunFrame_;
+        }
+    }
+
+    // 更新飞鸟动画：
+    if(obstacleType_ == ObstacleType::Bird) {
+        ++birdFrameCount_;
+
+        if(birdFrameCount_ >= 15) {  // 每 15 帧更新一次图片
+            birdFrameCount_ = 0;
+            currentBirdFrame_ = 1 - currentBirdFrame_;
         }
     }
 
@@ -165,13 +191,15 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawLine(x,700,x+20,720);  // 画一条斜线
     }
 
-    // 仙人掌障碍物：
-    if(!cactusPixmap_.isNull()) {
-        painter.drawPixmap(obstacleRect_,cactusPixmap_);  // 第一个参数是目标矩形（位置），第二个参数是填充图片
-    }else {  // 未加载图片就画简易矩形替代
-        painter.setBrush(QColor(200, 80, 80));
-        painter.setPen(Qt::NoPen);
-        painter.drawRect(obstacleRect_);
+    // 绘制障碍物：
+    if(obstacleType_ == ObstacleType::Bird) {  // 飞鸟障碍物吗，需要动画判断
+        const QPixmap &birdPixmap = currentBirdFrame_ == 0
+            ? bird1Pixmap_
+            : bird2Pixmap_;
+
+        painter.drawPixmap(obstacleRect_, birdPixmap);
+    }else {  // 仙人掌障碍物
+        painter.drawPixmap(obstacleRect_, cactusPixmap_);  // 第一个参数是目标矩形（位置），第二个参数是填充图片
     }
 
     // 小恐龙
@@ -236,6 +264,10 @@ void GameWidget::resetGame() {
     // 重置小恐龙动画：
     motionRateCount_ = 0;
     currentRunFrame_ = 0;
+
+    // 重置飞鸟动画：
+    birdFrameCount_ = 0;
+    currentBirdFrame_ = 0;
 
     // 重置游戏状态：
     gameOver_ = false;
