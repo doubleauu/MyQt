@@ -420,8 +420,10 @@ void GameWidget::spawnNextObstacle() {
     case ObstacleType::CactusMix:
         obstacleRect_ = QRect(width(), 500, 300, 200);
         break;
-    case ObstacleType::Bird:
-        obstacleRect_ = QRect(width(), 450, 200, 150);
+    case ObstacleType::Bird: {  // 飞鸟随机生成高度
+        const int birdY = QRandomGenerator::global()->bounded(200, 450);
+        obstacleRect_ = QRect(width(), birdY, 200, 150);
         break;
+    }
     }
 }
