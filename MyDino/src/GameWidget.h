@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QPixmap>  // Qt 中用来保存图片的类
 #include <QString>
+#include <QSoundEffect>
 
 class GameWidget : public QWidget {  // 继承自 QWitget 类
 public:
@@ -121,4 +122,15 @@ private:
 
     // 保存字体名称，使用默认字体兜底
     QString fontFamily_ = QStringLiteral("Consolas");
+
+    // 音效：
+    QSoundEffect jumpSound_;
+    QSoundEffect hurtSound_;
+    QSoundEffect shootSound_;
+    QSoundEffect godSound_;
+    QSoundEffect scoreSound_;
+    // 防止分数音效每一帧重复播放
+    bool score3000Played_ = false;
+    bool score6000Played_ = false;
+
 };

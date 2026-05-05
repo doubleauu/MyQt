@@ -9,6 +9,7 @@
 #include <QStringList>
 
 #include <QRandomGenerator>  // 用于生成随机数
+#include <QUrl>  // 加载音频资源
 
 // 匿名命名空间，这些变量只在内部使用，不属于成员变量，不需要暴露，表示规则常量
 // constexpr 表示翻译期常量，强于 const
@@ -87,6 +88,22 @@ GameWidget::GameWidget(QWidget *parent)
             fontFamily_ = families.first();
         }
     }
+
+
+    // 加载音频资源：
+    const QString audioPath = QCoreApplication::applicationDirPath() + "/Resources/Audios/";
+
+    auto setupSound = [](QSoundEffect &sound, const QString &filePath) {
+        sound.setSource(QUrl::fromLocalFile(filePath));
+        sound.setVolume(0.6f);
+    };
+
+    setupSound(jumpSound_, audioPath + "JUMP.wav");
+    setupSound(hurtSound_, audioPath + "HURT.wav");
+    setupSound(shootSound_, audioPath + "SHOOT.wav");
+    setupSound(godSound_, audioPath + "GOD.wav");
+    setupSound(scoreSound_, audioPath + "SCORE.wav");
+
 
     // 随机生成第一个障碍物：
     spawnNextObstacle();
@@ -168,6 +185,7 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     if(spacePressed_ && !inAir_ && !sprint_) {
         velocityY_ = JumpVelocity;  // 初始速度，后续随重力加速度变化
         inAir_ =  true;
+        jumpSound_.play();  // 播放跳跃音效
     }
 
     // 分层背景移动：不同层背景移动速率不同
@@ -255,6 +273,7 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
             spawnNextObstacle();
         }else if(!godMode_ && hurtProtectFrames_ <= 0) {  // 否则，如果不在无敌状态且不在受伤保护期间就扣血
             --health_;
+            hurtSound_.play();  // 受伤音效
             hurtProtectFrames_ = HurtProtectFrames;
 
             if(health_ <= 0) {
@@ -270,6 +289,17 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         score_ += speed_ - 1;
         if(sprint_) score_ += speed_ - 1;  // 冲刺状态加分
         highScore_ = std::max(highScore_, score_);
+
+        // 分数阈值音效：
+        if(score_ >= 3000 && !score3000Played_) {
+            scoreSound_.play();
+            score3000Played_ = true;
+        }
+
+        if(score_ >= 6000 && !score6000Played_) {
+            scoreSound_.play();
+            score6000Played_ = true;
+        }
     }
 
     // 更新小恐龙跑步动画：
@@ -511,6 +541,11 @@ void GameWidget::resetGame() {
 
     // 刷新随机障碍物
     spawnNextObstacle();
+
+    // 重置分数音效状态
+    score3000Played_ = false;
+    score6000Played_ = false;
+
 }
 
 // 键盘接受函数：
@@ -577,6 +612,7 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         if(stamina_ > 0 && !fireballActive_) {  // 不能连续发射，因为只有一个火球矩形；
             --stamina_;
             fireballActive_  = true;
+            shootSound_.play();
 
             // 先判断小恐龙的嘴部位置，找到火球的发射点
             const int mouthY = sprint_ && !inAir_
@@ -594,6 +630,7 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
             stamina_ = 0;
             godMode_ = true;
             godModeFrames_ = GodModeFrames;
+            godSound_.play();
         }
         return;  // 低于三格体力不处理
     }

@@ -370,6 +370,17 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe --build QtDino/build
 - `resetGame()` 已支持重开时清空无敌状态和无敌倒计时。
 - 本次提交信息：`实现无敌状态`。
 
+### 2026-05-05 23:32
+
+- 已完成并验收 `接入游戏音效`。
+- `MyDino/CMakeLists.txt` 已加入 `Qt6::Multimedia`，用于支持 `QSoundEffect`。
+- `GameWidget` 已新增 `jumpSound_`、`hurtSound_`、`shootSound_`、`godSound_` 和 `scoreSound_` 五个短音效对象。
+- 构造函数已通过 `QUrl::fromLocalFile()` 加载 `JUMP.wav`、`HURT.wav`、`SHOOT.wav`、`GOD.wav` 和 `SCORE.wav`。
+- 跳跃、受伤、成功发射火球和成功开启无敌时会播放对应音效。
+- 分数达到 `3000` 和 `6000` 后会各播放一次 `SCORE.wav`，并通过 `score3000Played_`、`score6000Played_` 避免重复触发。
+- `resetGame()` 已支持重开时重置分数阈值音效状态。
+- 本次提交信息：`接入游戏音效`。
+
 如果后续要在 `MyDino/` 里继续手写复现，建议从 `QtDino/` 中逐步搬迁思路，而不是一次性复制整份实现；每次讲解前先只读检查用户当前代码进度。
 
 ## 资源记忆
