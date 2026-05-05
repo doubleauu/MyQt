@@ -101,6 +101,10 @@ private:
     QPixmap stamina2Pixmap_;
     QPixmap stamina3Pixmap_;
 
+    // 火球:
+    QPixmap fireballPixmap_;
+    bool fireballActive_ = false;
+    QRect fireballRect_ {0, 0, 50, 50};  // 初始位置，没什么用，反正后面会更新
 
     // 添加当前分数和最高分显示
     int score_ = 0;

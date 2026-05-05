@@ -71,6 +71,9 @@ GameWidget::GameWidget(QWidget *parent)
     stamina2Pixmap_.load(imagePath + "Stamia2.png");
     stamina3Pixmap_.load(imagePath + "Stamia3.png");
 
+    // 火球图片：
+    fireballPixmap_.load(imagePath + "Fireball.png");
+
     // 加载字体：
     const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
     const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
@@ -181,6 +184,16 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         spawnNextObstacle();
     }
 
+
+    // 火球移动：
+    if(fireballActive_) {  // 如果当前有火球发射
+        fireballRect_.translate(30,0);
+
+        if(fireballRect_.x() > 2100) {
+            fireballActive_ = false;    // 火球发射完毕
+        }
+    }
+
     // 可变碰撞框：创建新的矩形，直接复用原版参数
     QRect dinoCollisionBox;
     if(sprint_ && !inAir_) {
@@ -206,6 +219,14 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
             120,60
         );
     }
+
+
+    // 火球与障碍物碰撞检测：
+    if(fireballActive_ && fireballRect_.intersects(obstacleCollisionBox)) {
+        fireballActive_ = false;
+        spawnNextObstacle();
+    }
+
 
     // 碰撞检测时加上保护检测，血量扣光时游戏结束
     if(dinoCollisionBox.intersects(obstacleCollisionBox) && hurtProtectFrames_ <= 0) {
@@ -291,6 +312,12 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
     if(obstaclePixmap && !obstaclePixmap->isNull()) {  // 前者判断是否空指针，后者判断图片是否加载成功
         painter.drawPixmap(obstacleRect_, *obstaclePixmap);  // 注意指针需要解引用，第一个参数是目标矩形（位置），第二个参数是填充图片
+    }
+
+
+    // 火球：
+    if(fireballActive_ && !fireballPixmap_.isNull()) {
+        painter.drawPixmap(fireballRect_, fireballPixmap_);
     }
 
 
@@ -438,6 +465,10 @@ void GameWidget::resetGame() {
     // 重置体力：
     stamina_ = 3;
 
+    // 重置火球：(删除火球画面）
+    fireballActive_ = false;
+    fireballRect_ = QRect(0,0,50,50);
+
     // 重置速度：
     speed_ = 2;
     scrollSpeed_ = speed_ * 3;
@@ -495,6 +526,23 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         return;
     }
 
+
+    // 右键发射火球：
+    if(event->key()==Qt::Key_Right) {
+        if(stamina_ > 0 && !fireballActive_) {  // 不能连续发射，因为只有一个火球矩形；
+            --stamina_;
+            fireballActive_  = true;
+
+            // 先判断小恐龙的嘴部位置，找到火球的发射点
+            const int mouthY = sprint_ && !inAir_
+                ? dinoRect_.y() + 100
+                : dinoRect_.y() + 40;
+
+            fireballRect_ = QRect(220, mouthY + 20, 50, 50);
+        }
+        return;
+    }
+
     // 只记录是否按下按键，具体情况交给 tick() 刷新函数判断
     // 下蹲冲刺按键：支持 down 和 s 键
     if(event->key()==Qt::Key_Down || event->key()==Qt::Key_S) {
@@ -547,6 +595,7 @@ void GameWidget::spawnNextObstacle() {
     currentBirdFrame_ = 0;
 
     // 对于不同类型障碍物，更改他们的 图片所在矩形
+    // 此时也刚好是刷新了新的障碍物位置，从窗口右端进入
     switch(obstacleType_) {
     case ObstacleType::CactusSmall1:
         obstacleRect_ = QRect(width(), 580, 60, 120);
