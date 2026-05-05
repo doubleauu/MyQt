@@ -81,7 +81,9 @@ private:
     int birdFrameCount_ = 0;  // 小鸟动画计数器，判断应该画哪一帧动画
     int currentBirdFrame_ = 0;  // 当前显示图片
 
-    // 添加结束状态：
+    // 游戏基础状态：
+    bool welcome_ = true;
+    bool paused_ = false;
     bool gameOver_ = false;
 
     // 生命值和受伤保护：

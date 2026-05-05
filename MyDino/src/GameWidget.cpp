@@ -82,8 +82,20 @@ GameWidget::GameWidget(QWidget *parent)
 // 界面刷新函数实现，每一帧都会执行一次
 void GameWidget::tick() {  // 作用域限定符写在返回类型后面
 
-    // 失败判断：
-    if (gameOver_) {
+    // 欢迎，暂停，失败状态下，只重绘画面，不更新游戏逻辑：
+    if(paused_) {
+        update();
+        return;
+    }
+
+    if(welcome_) {
+        speed_ = 0;
+        update();
+        return;
+    }
+
+    if(gameOver_) {
+        speed_ = 0;
         update();
         return;
     }
@@ -299,6 +311,26 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawRect(dinoRect_);  // 绘制矩形
     }
 
+    // 状态绘制：
+    painter.setPen(Qt::white);
+
+    if(welcome_) {
+        painter.setFont(QFont(fontFamily_, 32));
+        painter.drawText(rect(), Qt::AlignCenter, "Welcome to Run's Dino!\nPress Space to Start Running!");
+    }else if(gameOver_) {
+        painter.setFont(QFont(fontFamily_, 32));
+        painter.drawText(rect(), Qt::AlignCenter, "Game Over\nPress R to Restart");
+    }else if(paused_) {
+        painter.setFont(QFont(fontFamily_, 32));
+        painter.drawText(rect(), Qt::AlignCenter, "Paused\nPress ESC to Continue");
+    }
+
+    // 分数在欢迎界面不显示
+    // 生命值在欢迎界面和失败界面不显示，后者已经在下方实现：生命值为 0，变成空指针不显示
+    if(welcome_) {
+        return;
+    }
+
     // 生命值绘制：如果游戏结束（生命值为零，就会变成空指针，也就不会绘制生命值）
     const QPixmap *heartPixmap = nullptr;
 
@@ -328,13 +360,6 @@ void GameWidget::paintEvent(QPaintEvent *) {
         Qt::AlignRight | Qt::AlignVCenter,
         QString("HI %1").arg(highScore_ / 15, 5, 10, QLatin1Char('0'))
     );
-
-    // 失败提示：
-    if(gameOver_) {
-        painter.setPen(Qt::white);
-        painter.setFont(QFont(fontFamily_,32));
-        painter.drawText(rect(),Qt::AlignCenter,"Game Over\nPress R to Restart");
-    }
 
 }
 
@@ -366,6 +391,8 @@ void GameWidget::resetGame() {
 
     // 重置游戏状态：
     gameOver_ = false;
+    welcome_ = true;
+    paused_ = false;
     score_ = 0;
 
     // 重置血量：
@@ -393,6 +420,33 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
     // 重开按键：
     if(event->key()==Qt::Key_R && gameOver_) {
         resetGame();
+        welcome_ = false;  // 实现失败后重开直接开跑；
+        return;
+    }
+
+    // 欢迎界面按跳跃键开始游戏，放到跳跃逻辑中处理
+
+    // Esc 暂停 / 继续：
+    if(event->key()==Qt::Key_Escape) {
+        if(!gameOver_ && !welcome_) {
+            paused_ = !paused_;
+        }
+
+        // 其实我感觉接受更好一点，否则下蹲期间上方是飞鸟，暂停直接变成站立就碰上了
+
+        // // 暂停后不再接收按键的释放事件
+        // if(paused_) {
+        //     downPressed_ = false;
+        //     spacePressed_ = false;
+        //     sprint_ = false;
+        // }
+
+        return;
+    }
+
+    // 暂停后只接受 esc 按键
+    if(paused_) {
+        QWidget::keyPressEvent(event);  // 交给父类处理，其实就是丢掉不处理，写不写无所谓
         return;
     }
 
@@ -412,6 +466,13 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
     // 跳跃按键
     if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
         spacePressed_ = true;
+
+        // 开始按键放到跳跃按键分支中，实现开始即跳
+        if(welcome_) {
+            welcome_ = false;
+            speed_ = 2;
+        }
+
         return;  // 其他按键不处理
     }
 
