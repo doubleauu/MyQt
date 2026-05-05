@@ -494,7 +494,17 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         return;
     }
 
-    // 欢迎界面按跳跃键开始游戏，放到跳跃逻辑中处理
+    // 欢迎界面按跳跃键开始游戏，可放到跳跃逻辑中处理，也可单独处理
+    // 此时不处理其他按键
+    if(welcome_) {
+        if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
+            spacePressed_ = true;
+            welcome_ = false;
+            speed_ = 2;
+        }
+        return;
+    }
+
 
     // Esc 暂停 / 继续：
     if(event->key()==Qt::Key_Escape) {
@@ -527,8 +537,8 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
     }
 
 
-    // 右键发射火球：
-    if(event->key()==Qt::Key_Right) {
+    // 右键发射火球：(欢迎界面不处理）
+    if(!welcome_ && event->key()==Qt::Key_Right) {
         if(stamina_ > 0 && !fireballActive_) {  // 不能连续发射，因为只有一个火球矩形；
             --stamina_;
             fireballActive_  = true;
@@ -553,13 +563,6 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
     // 跳跃按键
     if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
         spacePressed_ = true;
-
-        // 开始按键放到跳跃按键分支中，实现开始即跳
-        if(welcome_) {
-            welcome_ = false;
-            speed_ = 2;
-        }
-
         return;  // 其他按键不处理
     }
 
