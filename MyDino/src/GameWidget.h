@@ -29,6 +29,18 @@ private:
     int speed_ = 2;  // 当前游戏速度档位，分数越高，速度越快
     int scrollSpeed_ = 6;  // 背景偏移速度
 
+    // 添加分层背景图片资源
+    QPixmap starPixmap_;
+    QPixmap moonPixmap_;
+    QPixmap cloudPixmap_;
+    QPixmap groundPixmap_;
+
+    // 每一层背景的绘制区域：
+    QRect starRect_ {0,0,3200,800};
+    QRect moonRect_ {0,0,3200,800};
+    QRect cloudRect_ {0,0,3200,800};
+    QRect groundRect_ {0,0,3200,800};
+
     // 存放小恐龙图片
     QPixmap run1Pixmap_;
     QPixmap run2Pixmap_;

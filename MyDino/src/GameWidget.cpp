@@ -46,6 +46,12 @@ GameWidget::GameWidget(QWidget *parent)
     bird1Pixmap_.load(imagePath + "Bird1.png");
     bird2Pixmap_.load(imagePath + "Bird2.png");
 
+    // 背景照片：
+    starPixmap_.load(imagePath + "LAYER_STAR.png");
+    moonPixmap_.load(imagePath + "LAYER_MOON.png");
+    cloudPixmap_.load(imagePath + "LAYER_CLOUD.png");
+    groundPixmap_.load(imagePath + "LAYER_GROUND.png");
+
     // 加载字体：
     const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
     const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
@@ -110,10 +116,23 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         inAir_ =  true;
     }
 
-    // 背景移动：
-    groundOffset_ -= scrollSpeed_;
-    if(groundOffset_ <= -40) {
-        groundOffset_ = 0;
+    // 分层背景移动：不同层背景移动速率不同
+    starRect_.translate(-speed_ * 2,0);
+    moonRect_.translate(-speed_ * 1,0);
+    cloudRect_.translate(-speed_ * 4,0);
+    groundRect_.translate(-speed_ * 8,0);
+    // 移动出窗口时回正
+    if(starRect_.x() <= -1600) {
+        starRect_.moveLeft(0);
+    }
+    if(moonRect_.x() <= -1600) {
+        moonRect_.moveLeft(0);
+    }
+    if(cloudRect_.x() <= -1600) {
+        cloudRect_.moveLeft(0);
+    }
+    if(groundRect_.x() <= -1600) {
+        groundRect_.moveLeft(0);
     }
 
     // 仙人掌移动
@@ -192,16 +211,11 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
     // 背景：
     painter.fillRect(rect(),QColor(32,33,36));  // 填充整个矩形界面
-
-    // 地面：
-    painter.setPen(QPen(Qt::white,3));  // 设置画笔颜色和宽度
-    painter.drawLine(0,700,width(),700);  // 设置直线两端坐标
-
-    // 地面小线段
-    painter.setPen(QPen(QColor(180,180,180),2));
-    for(int x = groundOffset_; x < width(); x+=40) {  //每隔 40 像素重复生成，与背景最大偏移量周期一致
-        painter.drawLine(x,700,x+20,720);  // 画一条斜线
-    }
+    // 分层画背景：
+    painter.drawPixmap(starRect_, starPixmap_);
+    painter.drawPixmap(moonRect_, moonPixmap_);
+    painter.drawPixmap(cloudRect_, cloudPixmap_);
+    painter.drawPixmap(groundRect_, groundPixmap_);
 
     // 绘制障碍物：
     if(obstacleType_ == ObstacleType::Bird) {  // 飞鸟障碍物吗，需要动画判断
@@ -272,6 +286,10 @@ void GameWidget::resetGame() {
     //重置障碍物和背景位置：
     obstacleRect_.moveLeft(width());
     groundOffset_ = 0;
+    starRect_.moveLeft(0);
+    moonRect_.moveLeft(0);
+    cloudRect_.moveLeft(0);
+    groundRect_.moveLeft(0);
 
     // 重置小恐龙动画：
     motionRateCount_ = 0;
