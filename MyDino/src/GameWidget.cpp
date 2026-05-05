@@ -65,6 +65,12 @@ GameWidget::GameWidget(QWidget *parent)
     heart2Pixmap_.load(imagePath + "Heart2.png");
     heart3Pixmap_.load(imagePath + "Heart3.png");
 
+    // 体力图片：
+    stamina0Pixmap_.load(imagePath + "Stamia0.png");
+    stamina1Pixmap_.load(imagePath + "Stamia1.png");
+    stamina2Pixmap_.load(imagePath + "Stamia2.png");
+    stamina3Pixmap_.load(imagePath + "Stamia3.png");
+
     // 加载字体：
     const QString resourcePath = QCoreApplication::applicationDirPath() + "/Resources/";
     const int fontId  = QFontDatabase::addApplicationFont(resourcePath + "TEXTS.ttf");  // 把字体文件注册到当前 Qt 程序中
@@ -255,6 +261,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
     painter.drawPixmap(cloudRect_, cloudPixmap_);
     painter.drawPixmap(groundRect_, groundPixmap_);
 
+
     // 绘制障碍物，代码写法同小恐龙，先写一个空指针，然后判断指向哪一个图片，最后进行绘制
     const QPixmap *obstaclePixmap = nullptr;
 
@@ -286,6 +293,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawPixmap(obstacleRect_, *obstaclePixmap);  // 注意指针需要解引用，第一个参数是目标矩形（位置），第二个参数是填充图片
     }
 
+
     // 小恐龙
     const QPixmap *currentPixmap = nullptr;  // 指针指向的对象内容不能修改，但是可以更改指向内容
     if(inAir_) {
@@ -311,6 +319,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawRect(dinoRect_);  // 绘制矩形
     }
 
+
     // 状态绘制：
     painter.setPen(Qt::white);
 
@@ -325,11 +334,13 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawText(rect(), Qt::AlignCenter, "Paused\nPress ESC to Continue");
     }
 
+
     // 分数在欢迎界面不显示
     // 生命值在欢迎界面和失败界面不显示，后者已经在下方实现：生命值为 0，变成空指针不显示
     if(welcome_) {
         return;
     }
+
 
     // 生命值绘制：如果游戏结束（生命值为零，就会变成空指针，也就不会绘制生命值）
     const QPixmap *heartPixmap = nullptr;
@@ -346,6 +357,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.drawPixmap(QRect(20,700,200,60), *heartPixmap);
     }
 
+
     // 分数绘制：
     painter.setPen(Qt::white);
     painter.setFont(QFont(fontFamily_,20));
@@ -360,6 +372,30 @@ void GameWidget::paintEvent(QPaintEvent *) {
         Qt::AlignRight | Qt::AlignVCenter,
         QString("HI %1").arg(highScore_ / 15, 5, 10, QLatin1Char('0'))
     );
+
+
+    // 失败界面不绘制体力：
+    if(gameOver_) {
+        return;
+    }
+
+
+    // 体力值绘制：
+    const QPixmap *staminaPixmap = nullptr;
+
+    if(stamina_ >= 3) {
+        staminaPixmap = &stamina3Pixmap_;
+    }else if(stamina_ == 2) {
+        staminaPixmap = &stamina2Pixmap_;
+    }else if(stamina_ == 1) {
+        staminaPixmap = &stamina1Pixmap_;
+    }else {
+        staminaPixmap = &stamina0Pixmap_;
+    }
+
+    if(staminaPixmap && !staminaPixmap->isNull()) {
+        painter.drawPixmap(QRect(270, 700, 200, 60), *staminaPixmap);
+    }
 
 }
 
@@ -398,6 +434,9 @@ void GameWidget::resetGame() {
     // 重置血量：
     health_ = 3;
     hurtProtectFrames_ = 0;
+
+    // 重置体力：
+    stamina_ = 3;
 
     // 重置速度：
     speed_ = 2;

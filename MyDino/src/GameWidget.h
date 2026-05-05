@@ -94,6 +94,14 @@ private:
     QPixmap heart2Pixmap_;
     QPixmap heart3Pixmap_;
 
+    // 体力值和体力图片：
+    int stamina_ = 3;
+    QPixmap stamina0Pixmap_;
+    QPixmap stamina1Pixmap_;
+    QPixmap stamina2Pixmap_;
+    QPixmap stamina3Pixmap_;
+
+
     // 添加当前分数和最高分显示
     int score_ = 0;
     int highScore_ = 0;
