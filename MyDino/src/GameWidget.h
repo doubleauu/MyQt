@@ -52,20 +52,32 @@ private:
     int motionRateCount_ = 0;  // 计数器，控制切图时机
     int currentRunFrame_ = 0;  // 显示当前为第几张图片
 
-    // 添加仙人掌障碍物：
-    QPixmap cactusPixmap_;
+    void spawnNextObstacle();  // 随机生成下一个障碍物
+
+    // 添加多种类型仙人掌障碍物：
+    QPixmap cactusSmall1Pixmap_;
+    QPixmap cactusSmall2Pixmap_;
+    QPixmap cactusSmall3Pixmap_;
+    QPixmap cactusBig1Pixmap_;
+    QPixmap cactusBig2Pixmap_;
+    QPixmap cactusMixPixmap_;
     QRect obstacleRect_ {1600,580,60,120};
     int obstacleSpeed_ = 16;
 
     // 添加飞鸟资源和障碍物类型
     enum class ObstacleType {
-        Cactus,
+        CactusSmall1,
+        CactusSmall2,
+        CactusSmall3,
+        CactusBig1,
+        CactusBig2,
+        CactusMix,
         Bird
     };
 
     QPixmap bird1Pixmap_;
     QPixmap bird2Pixmap_;
-    ObstacleType obstacleType_ = ObstacleType::Cactus;  // 当前障碍物类型
+    ObstacleType obstacleType_ = ObstacleType::CactusSmall1;  // 当前障碍物类型，默认小仙人掌
     int birdFrameCount_ = 0;  // 小鸟动画计数器，判断应该画哪一帧动画
     int currentBirdFrame_ = 0;  // 当前显示图片
 

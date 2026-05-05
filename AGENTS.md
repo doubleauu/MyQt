@@ -266,6 +266,15 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe --build QtDino/build
 - `resetGame()` 已支持重开时恢复各背景层初始位置。
 - 本次提交信息：`实现分层背景动画`。
 
+### 2026-05-05 19:46
+
+- 已完成并验收 `扩展随机障碍物类型`。
+- `GameWidget` 已引入 `QRandomGenerator`，障碍物离开左侧后会通过 `spawnNextObstacle()` 随机选择下一种障碍物。
+- 已从单张 `cactusPixmap_` 扩展为 `Cactus_SMALL1/2/3`、`Cactus_BIG1/2` 和 `Cactus_MIX` 六种仙人掌资源。
+- `ObstacleType` 已细化为多种仙人掌类型和飞鸟类型，绘制时根据当前类型选择对应贴图。
+- 随机生成时会根据障碍物类型设置对应绘制矩形，飞鸟仍保持低飞高度用于验收下蹲躲避。
+- 本次提交信息：`扩展随机障碍物类型`。
+
 如果后续要在 `MyDino/` 里继续手写复现，建议从 `QtDino/` 中逐步搬迁思路，而不是一次性复制整份实现；每次讲解前先只读检查用户当前代码进度。
 
 ## 资源记忆

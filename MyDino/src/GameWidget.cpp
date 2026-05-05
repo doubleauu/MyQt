@@ -8,6 +8,8 @@
 #include <QFontDatabase>
 #include <QStringList>
 
+#include <QRandomGenerator>  // 用于生成随机数
+
 // 匿名命名空间，这些变量只在内部使用，不属于成员变量，不需要暴露，表示规则常量
 // constexpr 表示翻译期常量，强于 const
 namespace {
@@ -40,7 +42,12 @@ GameWidget::GameWidget(QWidget *parent)
     sprint2Pixmap_.load(imagePath + "Sprint2.png");
 
     // 仙人掌照片：
-    cactusPixmap_.load(imagePath + "Cactus_SMALL1.png");
+    cactusSmall1Pixmap_.load(imagePath + "Cactus_SMALL1.png");
+    cactusSmall2Pixmap_.load(imagePath + "Cactus_SMALL2.png");
+    cactusSmall3Pixmap_.load(imagePath + "Cactus_SMALL3.png");
+    cactusBig1Pixmap_.load(imagePath + "Cactus_BIG1.png");
+    cactusBig2Pixmap_.load(imagePath + "Cactus_BIG2.png");
+    cactusMixPixmap_.load(imagePath + "Cactus_MIX.png");
 
     // 小鸟照片：
     bird1Pixmap_.load(imagePath + "Bird1.png");
@@ -135,12 +142,11 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         groundRect_.moveLeft(0);
     }
 
-    // 仙人掌移动
+    // 障碍物移动
     obstacleRect_.translate(-obstacleSpeed_,0);
-    // 更换小鸟障碍物：
+    // 更换随机障碍物：
     if(obstacleRect_.right() < 0) {
-        obstacleType_ = ObstacleType::Bird;
-        obstacleRect_ = QRect(width(),450,200,150);
+        spawnNextObstacle();
     }
 
     // 可变碰撞框：创建新的矩形，直接复用原版参数
@@ -217,15 +223,35 @@ void GameWidget::paintEvent(QPaintEvent *) {
     painter.drawPixmap(cloudRect_, cloudPixmap_);
     painter.drawPixmap(groundRect_, groundPixmap_);
 
-    // 绘制障碍物：
-    if(obstacleType_ == ObstacleType::Bird) {  // 飞鸟障碍物吗，需要动画判断
-        const QPixmap &birdPixmap = currentBirdFrame_ == 0
-            ? bird1Pixmap_
-            : bird2Pixmap_;
+    // 绘制障碍物，代码写法同小恐龙，先写一个空指针，然后判断指向哪一个图片，最后进行绘制
+    const QPixmap *obstaclePixmap = nullptr;
 
-        painter.drawPixmap(obstacleRect_, birdPixmap);
-    }else {  // 仙人掌障碍物
-        painter.drawPixmap(obstacleRect_, cactusPixmap_);  // 第一个参数是目标矩形（位置），第二个参数是填充图片
+    switch(obstacleType_) {
+    case ObstacleType::CactusSmall1:
+        obstaclePixmap = &cactusSmall1Pixmap_;
+        break;
+    case ObstacleType::CactusSmall2:
+        obstaclePixmap = &cactusSmall2Pixmap_;
+        break;
+    case ObstacleType::CactusSmall3:
+        obstaclePixmap = &cactusSmall3Pixmap_;
+        break;
+    case ObstacleType::CactusBig1:
+        obstaclePixmap = &cactusBig1Pixmap_;
+        break;
+    case ObstacleType::CactusBig2:
+        obstaclePixmap = &cactusBig2Pixmap_;
+        break;
+    case ObstacleType::CactusMix:
+        obstaclePixmap = &cactusMixPixmap_;
+        break;
+    case ObstacleType::Bird:  // 飞鸟障碍物吗，需要动画判断
+        obstaclePixmap = currentBirdFrame_ == 0 ? &bird1Pixmap_ : &bird2Pixmap_;
+        break;
+    }
+
+    if(obstaclePixmap && !obstaclePixmap->isNull()) {  // 前者判断是否空指针，后者判断图片是否加载成功
+        painter.drawPixmap(obstacleRect_, *obstaclePixmap);  // 注意指针需要解引用，第一个参数是目标矩形（位置），第二个参数是填充图片
     }
 
     // 小恐龙
@@ -364,4 +390,38 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
         return;
     }
     QWidget::keyReleaseEvent(event);  // 其他按键丢该父类，也就是不处理；
+}
+
+// 随机障碍物
+void GameWidget::spawnNextObstacle() {
+    const int typeIndex = QRandomGenerator::global()->bounded(0,7);
+    obstacleType_ = static_cast<ObstacleType>(typeIndex);
+
+    birdFrameCount_ = 0;
+    currentBirdFrame_ = 0;
+
+    // 对于不同类型障碍物，更改他们的 图片所在矩形
+    switch(obstacleType_) {
+    case ObstacleType::CactusSmall1:
+        obstacleRect_ = QRect(width(), 580, 60, 120);
+        break;
+    case ObstacleType::CactusSmall2:
+        obstacleRect_ = QRect(width(), 580, 120, 120);
+        break;
+    case ObstacleType::CactusSmall3:
+        obstacleRect_ = QRect(width(), 580, 180, 120);
+        break;
+    case ObstacleType::CactusBig1:
+        obstacleRect_ = QRect(width(), 500, 100, 200);
+        break;
+    case ObstacleType::CactusBig2:
+        obstacleRect_ = QRect(width(), 500, 200, 200);
+        break;
+    case ObstacleType::CactusMix:
+        obstacleRect_ = QRect(width(), 500, 300, 200);
+        break;
+    case ObstacleType::Bird:
+        obstacleRect_ = QRect(width(), 450, 200, 150);
+        break;
+    }
 }
