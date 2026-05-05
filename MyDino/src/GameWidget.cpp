@@ -68,6 +68,9 @@ GameWidget::GameWidget(QWidget *parent)
             fontFamily_ = families.first();
         }
     }
+
+    // 随机生成第一个障碍物：
+    spawnNextObstacle();
 }
 
 // 界面刷新函数实现，每一帧都会执行一次
@@ -333,6 +336,9 @@ void GameWidget::resetGame() {
     speed_ = 2;
     scrollSpeed_ = speed_ * 3;
     obstacleSpeed_ = speed_ * 8;
+
+    // 刷新随机障碍物
+    spawnNextObstacle();
 }
 
 // 键盘接受函数：
