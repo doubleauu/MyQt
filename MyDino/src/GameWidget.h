@@ -12,6 +12,7 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;  // 界面绘制函数
     void keyPressEvent(QKeyEvent *event) override; // 键盘输入函数
+    void keyReleaseEvent(QKeyEvent *event) override;  // 下蹲按键触发
 private:
     QTimer timer_; // 计时器，负责每隔一段时间提醒程序刷新
     void tick();  // 游戏每一帧要执行的函数，即每一帧的更新入口
@@ -20,6 +21,9 @@ private:
     QRect dinoRect_ {20,500,200,200};  // 恐龙的位置和大小
     int velocityY_ = 0;  // 竖直方向速度
     bool inAir_ = false; // 是否在空中，防止无限连跳
+    bool sprint_ = false;  // 是否下蹲冲刺
+    bool downPressed_ = false;  // 是否持续冲刺
+    bool spacePressed_ = false;  // 是否持续尝试跳跃
 
     int groundOffset_ = 0;  // 背景偏移量
     int scrollSpeed_ = 6;  // 背景偏移速度
@@ -28,6 +32,9 @@ private:
     QPixmap run1Pixmap_;
     QPixmap run2Pixmap_;
     QPixmap idlePixmap_;  // 跳跃状态
+    // 下蹲状态图片：
+    QPixmap sprint1Pixmap_;
+    QPixmap sprint2Pixmap_;
 
     int motionRateCount_ = 0;  // 计数器，控制切图时机
     int currentRunFrame_ = 0;  // 显示当前为第几张图片
@@ -46,5 +53,4 @@ private:
 
     // 保存字体名称，使用默认字体兜底
     QString fontFamily_ = QStringLiteral("Consolas");
-
 };

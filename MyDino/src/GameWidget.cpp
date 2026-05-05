@@ -14,6 +14,7 @@ namespace {
 constexpr int GroundY = 500;  // 恐龙在地面时左上角 y 坐标
 constexpr int JumpVelocity = 1840;  // 起跳初始速度
 constexpr int Gravity = 80;  // 重力加速度
+constexpr int FallVelocity = -1840;  // 空中下蹲快速下落
 }
 
 // 构造函数实现：
@@ -35,6 +36,8 @@ GameWidget::GameWidget(QWidget *parent)
     run1Pixmap_.load(imagePath + "Run1.png");
     run2Pixmap_.load(imagePath + "Run2.png");
     idlePixmap_.load(imagePath + "Idle.png");
+    sprint1Pixmap_.load(imagePath + "Sprint1.png");
+    sprint2Pixmap_.load(imagePath + "Sprint2.png");
 
     // 仙人掌照片：
     cactusPixmap_.load(imagePath + "Cactus_SMALL1.png");
@@ -50,7 +53,7 @@ GameWidget::GameWidget(QWidget *parent)
     }
 }
 
-// 界面刷新函数实现
+// 界面刷新函数实现，每一帧都会执行一次
 void GameWidget::tick() {  // 作用域限定符写在返回类型后面
 
     // 失败判断：
@@ -73,6 +76,24 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         }
     }
 
+    // 每一帧持续判断小恐龙是否冲刺状态，避免落地后卡顿
+    if(downPressed_) {
+        if(inAir_) {
+            velocityY_ = FallVelocity;
+            sprint_ = false;
+        }else {
+            sprint_ = true;
+        }
+    }else {
+        sprint_ = false;
+    }
+
+    // 每一帧持续判断小恐龙是否尝试跳跃，避免下蹲期间的跳跃按键无响应
+    if(spacePressed_ && !inAir_ && !sprint_) {
+        velocityY_ = JumpVelocity;  // 初始速度，后续随重力加速度变化
+        inAir_ =  true;
+    }
+
     // 背景移动：
     groundOffset_ -= scrollSpeed_;
     if(groundOffset_ <= -40) {
@@ -85,12 +106,21 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
         obstacleRect_.moveLeft(width());
     }
 
-    // 添加小恐龙碰撞框，创建新的矩形，直接复用原版参数
-    QRect dinoCollisionBox(
-        dinoRect_.x() + 40,
-        dinoRect_.y() + 40,
-        100,150
-    );
+    // 可变碰撞框：创建新的矩形，直接复用原版参数
+    QRect dinoCollisionBox;
+    if(sprint_ && !inAir_) {
+        dinoCollisionBox = QRect(
+            dinoRect_.x(),   // 小恐龙下蹲后变宽的部分恰好等于 40 像素，所以此处不用加
+            dinoRect_.y()+100,  // 变低了 60 像素
+            200,100
+        );
+    }else {
+        dinoCollisionBox = QRect(
+            dinoRect_.x()+40,  // 图片本身有透明区域，所以碰撞框范围要减小一些
+            dinoRect_.y()+40,
+            100,150
+        );
+    }
 
     if(dinoCollisionBox.intersects(obstacleRect_)) {
         gameOver_ = true;
@@ -100,13 +130,15 @@ void GameWidget::tick() {  // 作用域限定符写在返回类型后面
     // 更新分数，每一帧加一分，之后显示的时候再缩小，不然不好实现
     if(!gameOver_) {  // 这里进行二次判断，是防止这一帧刚碰撞还继续加分
         score_ += 1;
+        if(sprint_) score_ += 1;  // 冲刺状态加分
         highScore_ = std::max(highScore_, score_);
     }
 
     // 更新小恐龙跑步动画：
     if(!inAir_) {
         ++motionRateCount_;
-        if(motionRateCount_ >= 5) {  // 每五帧更新一次图片
+        const int frameInterval = sprint_ ? 4 : 5;  // 下蹲状态就每 4 帧更新一次照片
+        if(motionRateCount_ >= frameInterval) {  // 每五帧更新一次图片
             motionRateCount_ = 0;
             currentRunFrame_ = 1 - currentRunFrame_;
         }
@@ -146,6 +178,9 @@ void GameWidget::paintEvent(QPaintEvent *) {
     const QPixmap *currentPixmap = nullptr;  // 指针指向的对象内容不能修改，但是可以更改指向内容
     if(inAir_) {
         currentPixmap = &idlePixmap_;
+    }else if(sprint_) {  // 处理小恐龙下蹲时的动画帧数直接复用之前的判断变量：currentRunFrame_，保持一致
+        if(currentRunFrame_ == 0) currentPixmap = &sprint1Pixmap_;
+        else currentPixmap = &sprint2Pixmap_;
     }else if(currentRunFrame_ == 0) {
         currentPixmap = &run1Pixmap_;
     }else {
@@ -190,6 +225,9 @@ void GameWidget::resetGame() {
     dinoRect_.moveTop(GroundY);
     velocityY_ = 0;
     inAir_ = false;
+    sprint_ = false;
+    downPressed_ = false;
+    spacePressed_ = false;
 
     //重置障碍物和背景位置：
     obstacleRect_.moveLeft(width());
@@ -207,6 +245,12 @@ void GameWidget::resetGame() {
 // 键盘接受函数：
 void GameWidget::keyPressEvent(QKeyEvent *event) {
 
+    // 删除系统产生的自动重复按键事件，防止界面闪烁
+    if(event->isAutoRepeat()) {
+        QWidget::keyPressEvent(event);
+        return;
+    }
+
     // 重开按键：
     if(event->key()==Qt::Key_R && gameOver_) {
         resetGame();
@@ -219,18 +263,38 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         return;
     }
 
-    // 跳跃按键
-    if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
-        if(!inAir_) {
-            velocityY_ = JumpVelocity;  // 初始速度，后续随重力加速度变化
-            inAir_ = true;
-        }else {
-            QWidget::keyPressEvent(event);
-        }
-    }else {
-        QWidget::keyPressEvent(event);  // 其他按键不处理；
+    // 只记录是否按下按键，具体情况交给 tick() 刷新函数判断
+    // 下蹲冲刺按键：支持 down 和 s 键
+    if(event->key()==Qt::Key_Down || event->key()==Qt::Key_S) {
+        downPressed_ = true;
+        return;
     }
 
+    // 跳跃按键
+    if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
+        spacePressed_ = true;
+        return;  // 其他按键不处理
+    }
 
+}
 
+// 持续下蹲冲刺释放按键，松开按键时触发
+void GameWidget::keyReleaseEvent(QKeyEvent *event) {
+
+    // 删除系统产生的自动重复按键事件，防止界面闪烁
+    if(event->isAutoRepeat()) {
+        QWidget::keyReleaseEvent(event);
+        return;
+    }
+
+    if(event->key()==Qt::Key_Down || event->key()==Qt::Key_S) {
+        downPressed_ = false;
+        sprint_ = false;
+        return;
+    }
+    if(event->key()==Qt::Key_Space || event->key()==Qt::Key_Up || event->key()==Qt::Key_W) {
+        spacePressed_ = false;
+        return;
+    }
+    QWidget::keyReleaseEvent(event);  // 其他按键丢该父类，也就是不处理；
 }
