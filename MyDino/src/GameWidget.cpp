@@ -311,7 +311,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
     }
 
     if(heartPixmap && !heartPixmap->isNull()) {
-        painter.drawPixmap(QRect(20,20,150,50), *heartPixmap);
+        painter.drawPixmap(QRect(20,700,200,60), *heartPixmap);
     }
 
     // 分数绘制：
